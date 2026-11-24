@@ -76,6 +76,15 @@ int nuskaitytiDuomenis(string failoPavadinimas,
             return -1;
         }
 
+        kainosSrautas >> ws;
+        kiekioSrautas >> ws;
+
+        if (!kainosSrautas.eof() || !kiekioSrautas.eof()) {
+            cout << "Klaida: neteisinga "
+                 << i + 1 << " prekes kaina arba kiekis.\n";
+            return -1;
+        }
+
         if (!tinkamaKategorija(kategorijos[i])) {
             cout << "Klaida: neteisinga "
                  << i + 1 << " prekes kategorija.\n";
@@ -361,6 +370,13 @@ bool issaugotiAtaskaita(string failoPavadinimas,
            << " Eur\n";
 
     failas.close();
+
+    if (!failas) {
+        cout << "Klaida: nepavyko irasyti ataskaitos i faila "
+             << failoPavadinimas << ".\n";
+        return false;
+    }
+
     return true;
 }
 
@@ -429,6 +445,15 @@ int main() {
                                             kainos,
                                             kiekiai,
                                             prekiuKiekis);
+
+                    cout << fixed << setprecision(2);
+                    cout << "Kategorijos moketina suma: "
+                         << skaiciuotiKategorijosSuma(pasirinktaKategorija,
+                                                     kategorijos,
+                                                     kainos,
+                                                     kiekiai,
+                                                     prekiuKiekis)
+                         << " Eur\n";
                 }
                 break;
             }
