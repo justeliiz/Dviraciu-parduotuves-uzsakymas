@@ -92,12 +92,7 @@ int nuskaitytiDuomenis(string failoPavadinimas,
     return prekiuKiekis;
 }
 
-void rodytiVisasPrekes(string kategorijos[],
-                       string pavadinimai[],
-                       double kainos[],
-                       int kiekiai[],
-                       int prekiuKiekis) {
-    cout << "\n--- VISOS UZSAKYMO PREKES ---\n";
+void rodytiLentelesAntraste() {
     cout << left
          << setw(14) << "Kategorija"
          << setw(43) << "Pavadinimas"
@@ -109,29 +104,181 @@ void rodytiVisasPrekes(string kategorijos[],
          << setw(14) << "Moketi" << "\n";
 
     cout << string(120, '-') << "\n";
+}
 
+void rodytiPrekesEilute(string kategorija,
+                        string pavadinimas,
+                        double kaina,
+                        int kiekis) {
+    double eilutesSuma = skaiciuotiEilutesSuma(kaina, kiekis);
+    double nuolaida = skaiciuotiNuolaida(eilutesSuma, kiekis);
+    double moketi = eilutesSuma - nuolaida;
+
+    cout << left
+         << setw(14) << kategorija
+         << setw(43) << pavadinimas
+         << right
+         << setw(12) << kaina
+         << setw(9) << kiekis
+         << setw(14) << eilutesSuma
+         << setw(14) << nuolaida
+         << setw(14) << moketi << "\n";
+}
+
+void rodytiVisasPrekes(string kategorijos[],
+                       string pavadinimai[],
+                       double kainos[],
+                       int kiekiai[],
+                       int prekiuKiekis) {
+    cout << "\n--- VISOS UZSAKYMO PREKES ---\n";
     cout << fixed << setprecision(2);
+    rodytiLentelesAntraste();
+
+    for (int i = 0; i < prekiuKiekis; i++) {
+        rodytiPrekesEilute(kategorijos[i],
+                          pavadinimai[i],
+                          kainos[i],
+                          kiekiai[i]);
+    }
+}
+
+string pasirinktiKategorija() {
+    int pasirinkimas = 0;
+
+    while (true) {
+        cout << "\nPasirinkite kategorija:\n";
+        cout << "1. Dviraciai\n";
+        cout << "2. Dalys\n";
+        cout << "3. Aksesuarai\n";
+        cout << "0. Grizti i pagrindini meniu\n";
+        cout << "Jusu pasirinkimas: ";
+
+        if (!(cin >> pasirinkimas)) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Klaida: reikia ivesti sveikaji skaiciu.\n";
+            continue;
+        }
+
+        switch (pasirinkimas) {
+            case 1:
+                return "Dviraciai";
+            case 2:
+                return "Dalys";
+            case 3:
+                return "Aksesuarai";
+            case 0:
+                return "";
+            default:
+                cout << "Neteisingas pasirinkimas. Iveskite skaiciu nuo 0 iki 3.\n";
+        }
+    }
+}
+
+void rodytiKategorijosPrekes(string pasirinktaKategorija,
+                             string kategorijos[],
+                             string pavadinimai[],
+                             double kainos[],
+                             int kiekiai[],
+                             int prekiuKiekis) {
+    cout << "\n--- KATEGORIJA: " << pasirinktaKategorija << " ---\n";
+    cout << fixed << setprecision(2);
+    rodytiLentelesAntraste();
+
+    bool rasta = false;
+
+    for (int i = 0; i < prekiuKiekis; i++) {
+        if (kategorijos[i] == pasirinktaKategorija) {
+            rodytiPrekesEilute(kategorijos[i],
+                              pavadinimai[i],
+                              kainos[i],
+                              kiekiai[i]);
+            rasta = true;
+        }
+    }
+
+    if (!rasta) {
+        cout << "Sioje kategorijoje prekiu nerasta.\n";
+    }
+}
+
+double skaiciuotiBendraSuma(double kainos[],
+                            int kiekiai[],
+                            int prekiuKiekis) {
+    double bendraSuma = 0.0;
+
+    for (int i = 0; i < prekiuKiekis; i++) {
+        bendraSuma += skaiciuotiEilutesSuma(kainos[i], kiekiai[i]);
+    }
+
+    return bendraSuma;
+}
+
+double skaiciuotiBendraNuolaida(double kainos[],
+                                int kiekiai[],
+                                int prekiuKiekis) {
+    double bendraNuolaida = 0.0;
 
     for (int i = 0; i < prekiuKiekis; i++) {
         double eilutesSuma = skaiciuotiEilutesSuma(kainos[i], kiekiai[i]);
-        double nuolaida = skaiciuotiNuolaida(eilutesSuma, kiekiai[i]);
-        double moketi = eilutesSuma - nuolaida;
-
-        cout << left
-             << setw(14) << kategorijos[i]
-             << setw(43) << pavadinimai[i]
-             << right
-             << setw(12) << kainos[i]
-             << setw(9) << kiekiai[i]
-             << setw(14) << eilutesSuma
-             << setw(14) << nuolaida
-             << setw(14) << moketi << "\n";
+        bendraNuolaida += skaiciuotiNuolaida(eilutesSuma, kiekiai[i]);
     }
+
+    return bendraNuolaida;
+}
+
+double skaiciuotiKategorijosSuma(string pasirinktaKategorija,
+                                 string kategorijos[],
+                                 double kainos[],
+                                 int kiekiai[],
+                                 int prekiuKiekis) {
+    double kategorijosSuma = 0.0;
+
+    for (int i = 0; i < prekiuKiekis; i++) {
+        if (kategorijos[i] == pasirinktaKategorija) {
+            double eilutesSuma = skaiciuotiEilutesSuma(kainos[i], kiekiai[i]);
+            double nuolaida = skaiciuotiNuolaida(eilutesSuma, kiekiai[i]);
+            kategorijosSuma += eilutesSuma - nuolaida;
+        }
+    }
+
+    return kategorijosSuma;
+}
+
+void rodytiUzsakymoSumas(double kainos[],
+                         int kiekiai[],
+                         int prekiuKiekis) {
+    double bendraSuma = skaiciuotiBendraSuma(kainos, kiekiai, prekiuKiekis);
+    double bendraNuolaida = skaiciuotiBendraNuolaida(kainos, kiekiai, prekiuKiekis);
+    double galutineSuma = bendraSuma - bendraNuolaida;
+
+    cout << fixed << setprecision(2);
+    cout << "\n--- VISO UZSAKYMO SUMOS ---\n";
+    cout << "Suma be nuolaidos: " << bendraSuma << " Eur\n";
+    cout << "Bendra nuolaida:   " << bendraNuolaida << " Eur\n";
+    cout << "Galutine suma:     " << galutineSuma << " Eur\n";
+}
+
+void rodytiKategorijuSumas(string kategorijos[],
+                           double kainos[],
+                           int kiekiai[],
+                           int prekiuKiekis) {
+    cout << fixed << setprecision(2);
+    cout << "\n--- SUMOS PAGAL KATEGORIJAS ---\n";
+    cout << "Dviraciai:  "
+         << skaiciuotiKategorijosSuma("Dviraciai", kategorijos, kainos, kiekiai, prekiuKiekis)
+         << " Eur\n";
+    cout << "Dalys:      "
+         << skaiciuotiKategorijosSuma("Dalys", kategorijos, kainos, kiekiai, prekiuKiekis)
+         << " Eur\n";
+    cout << "Aksesuarai: "
+         << skaiciuotiKategorijosSuma("Aksesuarai", kategorijos, kainos, kiekiai, prekiuKiekis)
+         << " Eur\n";
 }
 
 void rodytiMeniu() {
     cout << "\n--- DVIRACIU PARDUOTUVES UZSAKYMAS ---\n";
-    cout << "1. Perziureti visas uzsakymo prekes\n";
+    cout << "1. Perziureti visas galimas prekes\n";
     cout << "2. Perziureti pasirinktos kategorijos prekes\n";
     cout << "3. Perziureti viso uzsakymo sumas\n";
     cout << "4. Perziureti sumas pagal kategorijas\n";
@@ -184,9 +331,31 @@ int main() {
                                   prekiuKiekis);
                 break;
 
-            case 2:
+            case 2: {
+                string pasirinktaKategorija = pasirinktiKategorija();
+
+                if (!pasirinktaKategorija.empty()) {
+                    rodytiKategorijosPrekes(pasirinktaKategorija,
+                                            kategorijos,
+                                            pavadinimai,
+                                            kainos,
+                                            kiekiai,
+                                            prekiuKiekis);
+                }
+                break;
+            }
+
             case 3:
+                rodytiUzsakymoSumas(kainos, kiekiai, prekiuKiekis);
+                break;
+
             case 4:
+                rodytiKategorijuSumas(kategorijos,
+                                      kainos,
+                                      kiekiai,
+                                      prekiuKiekis);
+                break;
+
             case 5:
             case 6:
                 cout << "Sis meniu punktas bus pridetas kitame etape.\n";
