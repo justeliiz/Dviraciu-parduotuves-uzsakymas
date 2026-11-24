@@ -130,7 +130,7 @@ void rodytiVisasPrekes(string kategorijos[],
                        double kainos[],
                        int kiekiai[],
                        int prekiuKiekis) {
-    cout << "\n--- VISOS UZSAKYMO PREKES ---\n";
+    cout << "\n--- VISOS GALIMOS PREKES ---\n";
     cout << fixed << setprecision(2);
     rodytiLentelesAntraste();
 
@@ -276,6 +276,94 @@ void rodytiKategorijuSumas(string kategorijos[],
          << " Eur\n";
 }
 
+void rodytiVisaAtaskaita(string kategorijos[],
+                         string pavadinimai[],
+                         double kainos[],
+                         int kiekiai[],
+                         int prekiuKiekis) {
+    cout << "\n=============================================\n";
+    cout << "      DVIRACIU PARDUOTUVES ATASKAITA\n";
+    cout << "=============================================\n";
+
+    rodytiVisasPrekes(kategorijos,
+                      pavadinimai,
+                      kainos,
+                      kiekiai,
+                      prekiuKiekis);
+
+    rodytiUzsakymoSumas(kainos, kiekiai, prekiuKiekis);
+    rodytiKategorijuSumas(kategorijos, kainos, kiekiai, prekiuKiekis);
+}
+
+bool issaugotiAtaskaita(string failoPavadinimas,
+                        string kategorijos[],
+                        string pavadinimai[],
+                        double kainos[],
+                        int kiekiai[],
+                        int prekiuKiekis) {
+    ofstream failas(failoPavadinimas);
+
+    if (!failas.is_open()) {
+        cout << "Klaida: nepavyko sukurti failo "
+             << failoPavadinimas << ".\n";
+        return false;
+    }
+
+    failas << fixed << setprecision(2);
+    failas << "DVIRACIU PARDUOTUVES UZSAKYMO ATASKAITA\n\n";
+
+    failas << left
+           << setw(14) << "Kategorija"
+           << setw(43) << "Pavadinimas"
+           << right
+           << setw(12) << "Kaina"
+           << setw(9) << "Kiekis"
+           << setw(14) << "Suma"
+           << setw(14) << "Nuolaida"
+           << setw(14) << "Moketi" << "\n";
+
+    failas << string(120, '-') << "\n";
+
+    for (int i = 0; i < prekiuKiekis; i++) {
+        double eilutesSuma = skaiciuotiEilutesSuma(kainos[i], kiekiai[i]);
+        double nuolaida = skaiciuotiNuolaida(eilutesSuma, kiekiai[i]);
+        double moketi = eilutesSuma - nuolaida;
+
+        failas << left
+               << setw(14) << kategorijos[i]
+               << setw(43) << pavadinimai[i]
+               << right
+               << setw(12) << kainos[i]
+               << setw(9) << kiekiai[i]
+               << setw(14) << eilutesSuma
+               << setw(14) << nuolaida
+               << setw(14) << moketi << "\n";
+    }
+
+    double bendraSuma = skaiciuotiBendraSuma(kainos, kiekiai, prekiuKiekis);
+    double bendraNuolaida = skaiciuotiBendraNuolaida(kainos, kiekiai, prekiuKiekis);
+    double galutineSuma = bendraSuma - bendraNuolaida;
+
+    failas << "\nVISO UZSAKYMO SUMOS\n";
+    failas << "Suma be nuolaidos: " << bendraSuma << " Eur\n";
+    failas << "Bendra nuolaida:   " << bendraNuolaida << " Eur\n";
+    failas << "Galutine suma:     " << galutineSuma << " Eur\n";
+
+    failas << "\nSUMOS PAGAL KATEGORIJAS\n";
+    failas << "Dviraciai:  "
+           << skaiciuotiKategorijosSuma("Dviraciai", kategorijos, kainos, kiekiai, prekiuKiekis)
+           << " Eur\n";
+    failas << "Dalys:      "
+           << skaiciuotiKategorijosSuma("Dalys", kategorijos, kainos, kiekiai, prekiuKiekis)
+           << " Eur\n";
+    failas << "Aksesuarai: "
+           << skaiciuotiKategorijosSuma("Aksesuarai", kategorijos, kainos, kiekiai, prekiuKiekis)
+           << " Eur\n";
+
+    failas.close();
+    return true;
+}
+
 void rodytiMeniu() {
     cout << "\n--- DVIRACIU PARDUOTUVES UZSAKYMAS ---\n";
     cout << "1. Perziureti visas galimas prekes\n";
@@ -357,8 +445,22 @@ int main() {
                 break;
 
             case 5:
+                rodytiVisaAtaskaita(kategorijos,
+                                    pavadinimai,
+                                    kainos,
+                                    kiekiai,
+                                    prekiuKiekis);
+                break;
+
             case 6:
-                cout << "Sis meniu punktas bus pridetas kitame etape.\n";
+                if (issaugotiAtaskaita("ataskaita.txt",
+                                       kategorijos,
+                                       pavadinimai,
+                                       kainos,
+                                       kiekiai,
+                                       prekiuKiekis)) {
+                    cout << "Ataskaita sekmingai issaugota faile ataskaita.txt.\n";
+                }
                 break;
 
             case 7:
